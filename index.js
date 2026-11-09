@@ -6,7 +6,7 @@
 // Part 2: GET /greet/:name  and  GET /test (calls /greet/:name with fetch)
 
 // Part 3: POST /action  ("joke" / "cat fact", otherwise 400 "body is malformed")
-
+require('dotenv').config();
 const express = require('express')
 const app = express()
 
@@ -42,6 +42,33 @@ app.get('/test', async (req, res) => {
 
 })
 
-app.post('')
+app.post('/action', async (req, res) => {
+
+    if (!req.body || typeof req.body !== 'object' || req.body == 'null')
+        return res.status(400).json({ 'msg': "body is malformed" })
+    const keys = Object.keys(req.body);
+    if (keys.length !== 1 || !keys.includes('action'))
+        return res.status(400).json({ 'msg': "body is malformed" })
+    const action = req.body.action
+
+    if (action === 'joke') {
+        const response = await fetch("https://v2.jokeapi.dev/joke/Any?type=single&safe-mode")
+        const data = await response.json()
+        return res.json({ joke: data.joke.toUpperCase() })
+    } else {
+        if (action === 'cat fact') {
+            const response = await fetch("https://api.thecatapi.com/v1/images/search?limit=11", { headers: { "x-api-key": process.env.CAT_API_KEY } })
+            const data = await response.json()
+            return res.json({ "length": String(data.length) })
+        }else{
+            return res.status(400).json({'msg': 'body is malformed'})
+        }
+    }
+
+
+
+
+
+})
 
 app.listen(3000)
